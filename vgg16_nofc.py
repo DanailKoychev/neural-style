@@ -1,13 +1,13 @@
-import os
-import sys
-import tensorflow as tf
-
 import numpy as np
+import tensorflow as tf
 import time
-from tensoflow_vgg import vgg16
+
+from tensorflow_vgg import vgg16
 
 VGG_MEAN = [103.939, 116.779, 123.68]
 
+# All fully connected layers (responsible for classification) are removed as they are not needed for the transfer.
+# Layer conv5 is currently not used as well.
 
 class Vgg16(vgg16.Vgg16):
     # Input should be an rgb image [batch, height, width, 3]
@@ -36,17 +36,17 @@ class Vgg16(vgg16.Vgg16):
         self.conv3_1 = self.conv_layer(self.pool2, "conv3_1")
         self.conv3_2 = self.conv_layer(self.conv3_1, "conv3_2")
         self.conv3_3 = self.conv_layer(self.conv3_2, "conv3_3")
-        self.pool3 = self.avg_pool(self.conv3_4, 'pool3')
+        self.pool3 = self.avg_pool(self.conv3_3, 'pool3')
 
         self.conv4_1 = self.conv_layer(self.pool3, "conv4_1")
         self.conv4_2 = self.conv_layer(self.conv4_1, "conv4_2")
         self.conv4_3 = self.conv_layer(self.conv4_2, "conv4_3")
-        self.pool4 = self.avg_pool(self.conv4_4, 'pool4')
+        self.pool4 = self.avg_pool(self.conv4_3, 'pool4')
 
-        self.conv5_1 = self.conv_layer(self.pool4, "conv5_1")
-        self.conv5_2 = self.conv_layer(self.conv5_1, "conv5_2")
-        self.conv5_3 = self.conv_layer(self.conv5_2, "conv5_3")
-        self.pool5 = self.avg_pool(self.conv5_4, 'pool5')
+        # self.conv5_1 = self.conv_layer(self.pool4, "conv5_1")
+        # self.conv5_2 = self.conv_layer(self.conv5_1, "conv5_2")
+        # self.conv5_3 = self.conv_layer(self.conv5_2, "conv5_3")
+        # self.pool5 = self.avg_pool(self.conv5_4, 'pool5')
 
         self.data_dict = None
         print("build model finished: %ds" % (time.time() - start_time))
