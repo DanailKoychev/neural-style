@@ -95,6 +95,6 @@ if __name__ == "__main__":
     skimage.io.imshow(fin)
     plt.show()
 
-    if args.save_path is not None:
+    if args.save_path:
         save(intermediate[-1], args.save_path)
 
