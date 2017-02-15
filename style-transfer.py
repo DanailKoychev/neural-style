@@ -1,18 +1,16 @@
 import argparse
+import matplotlib.pyplot as plt
 import numpy as np
-import sys
+import skimage.io
 import tensorflow as tf
 
 import tensorflow_vgg.vgg16 as vgg16
 import tensorflow_vgg.utils as utils
 import vgg16_nofc
 
-from style_loss import style_loss_vgg16 as style_loss
-from content_loss import content_loss as content_loss
-from utils import frobenious_norm
+from loss_functions import *
+from utils import *
 
-import skimage.io
-import matplotlib.pyplot as plt
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -35,42 +33,6 @@ def parse_arguments():
                                 help='prints intermediate cost function values')
     return parser
 
-def total_loss(vgg_var, vgg_content, vgg_style, weights, style_ws=tf.constant([1.0, 1.0, 1.0, 1.0])):
-    content = content_loss(vgg_var, vgg_content)
-    style = style_loss(vgg_var, vgg_style, style_ws)
-    return tf.add(tf.multiply(content, weights[0]), tf.multiply(style, weights[1]))
-
-
-def trim_colors(image):
-    img = np.copy(image)
-    img.shape = (img_width*img_height*3)
-    np.minimum(img, 1, img)
-    np.maximum(img, 0, img)
-    img.shape = (img_height, img_width, 3)
-    return img
-
-def show(image):
-    img = trim_colors(image)
-    skimage.io.imshow(img)
-    plt.show()
-
-def save(image, path):
-    img = trim_colors(image)
-    skimage.io.imshow(img)
-    plt.savefig(path)
-
-def save_a(images, directory, name):
-    os.mkdir(directory)
-    for i, image in enumerate(images):
-       img = trim_colors(image)
-       skimage.io.imshow(img)
-       plt.savefig(directory + "/" + name + str(i))
-
-def save_all(images, name):
-    for i, image in enumerate(images):
-        img = trim_colors(image)
-        skimage.io.imshow(img)
-        plt.savefig(name + "_" + str(i))
 
 if __name__ == "__main__":
     #parse arguments
@@ -82,6 +44,7 @@ if __name__ == "__main__":
     iterations = args.iterations
     img_height = img_width = args.resolution 
     verbose = args.verbose
+    style_layer_weights = [1.0, 1.0, 1.0, 1.0] 
 
     #load iamges
     img_content = utils.load_image(path_cont, img_width, img_height)
@@ -103,9 +66,9 @@ if __name__ == "__main__":
     vgg_var = vgg16_nofc.Vgg16()
     vgg_var.build(img_var)
 
-    style_weights = tf.constant([1.0, 1.0, 1.0, 1.0])
+    style_layer_weights = tf.constant(style_layer_weights)
     loss_type_weights = tf.constant([content_weight, style_weight])
-    error = total_loss(vgg_var, vgg_content, vgg_style, loss_type_weights)
+    error = total_loss(vgg_var, vgg_content, vgg_style, loss_type_weights, style_layer_weights)
 
     train_op = tf.train.AdamOptimizer(1e-1/5).minimize(error)
     feed_dict = {placeholder_content: img_content, placeholder_style: img_style}
@@ -125,7 +88,7 @@ if __name__ == "__main__":
             if i % 10 == 0:
                 intermediate.append(final_img)
                 if verbose:
-                    print('iter: ', i, 'error: ', e)
+                    print('iter:', i, ' error:', e)
 
     fin = trim_colors(intermediate[-1])
     skimage.io.imshow(fin)
