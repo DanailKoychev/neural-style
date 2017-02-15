@@ -29,7 +29,7 @@ def parse_arguments():
                                 help='relative weight of the content')
     parser.add_argument('--style_weight', type=float, default=1, required=False,
                                 help='relative weight of the style')
-    parser.add_argument('--verbose', type=bool, default=False, required=False,
+    parser.add_argument('--verbose', action='store_const', const=True, required=False,
                                 help='prints intermediate cost function values')
     return parser
 
@@ -68,7 +68,8 @@ if __name__ == "__main__":
 
     style_layer_weights = tf.constant(style_layer_weights)
     loss_type_weights = tf.constant([content_weight, style_weight])
-    error = total_loss(vgg_var, vgg_content, vgg_style, loss_type_weights, style_layer_weights)
+    error = total_loss(vgg_var, vgg_content, vgg_style, loss_type_weights,
+            style_layer_weights)
 
     train_op = tf.train.AdamOptimizer(1e-1/5).minimize(error)
     feed_dict = {placeholder_content: img_content, placeholder_style: img_style}
