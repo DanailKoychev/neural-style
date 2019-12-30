@@ -1,8 +1,9 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import os
-import tensorflow as tf
+import numpy as np
+import skimage.transform
 import skimage.io
+from PIL import Image
+
 
 def trim_colors(image):
     img = np.copy(image)
@@ -13,25 +14,21 @@ def trim_colors(image):
     img.shape = (shape[2], shape[1], shape[3])
     return img
 
-def show(image):
+
+def save_image(image, path):
     img = trim_colors(image)
-    skimage.io.imshow(img)
-    plt.show()
+    Image.fromarray(img).convert('RGBA').save(path)
 
-def save(image, path):
-    img = trim_colors(image)
-    skimage.io.imshow(img)
-    plt.savefig(path)
 
-def save_a(images, directory, name):
-    os.mkdir(directory)
-    for i, image in enumerate(images):
-       img = trim_colors(image)
-       skimage.io.imshow(img)
-       plt.savefig(directory + "/" + name + str(i))
+def load_image(path):
+    """ Loads an image cropped and rescaled to (224, 224)"""
+    img = skimage.io.imread(path)
+    img = img / 255.0
+    assert (0 <= img).all() and (img <= 1.0).all()
+    short_edge = min(img.shape[:2])
+    yy = int((img.shape[0] - short_edge) / 2)
+    xx = int((img.shape[1] - short_edge) / 2)
+    crop_img = img[yy: yy + short_edge, xx: xx + short_edge]
+    resized_img = skimage.transform.resize(crop_img, (224, 224))
+    return resized_img
 
-def save_all(images, name):
-    for i, image in enumerate(images):
-        img = trim_colors(image)
-        skimage.io.imshow(img)
-        plt.savefig(name + "_" + str(i))

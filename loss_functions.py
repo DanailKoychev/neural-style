@@ -1,7 +1,9 @@
 import tensorflow as tf
 
+
 def frobenious_norm(tensor):
     return tf.sqrt(tf.reduce_sum(tf.square(tensor)))
+
 
 def gram_matrix(features):
     # features should be a layer activation for single input,
@@ -11,10 +13,14 @@ def gram_matrix(features):
     unnormalized_gram_m = tf.matmul(features, features, transpose_a=True)
     return tf.div(unnormalized_gram_m, shape[1] * shape[2] * shape[3])
 
-def total_loss(vgg_var, vgg_content, vgg_style, weights, style_ws=tf.constant([1.0, 1.0, 1.0, 1.0])):
+
+def style_transfer_loss(
+        vgg_var, vgg_content, vgg_style, weights,
+        style_ws=tf.constant([1.0, 1.0, 1.0, 1.0])):
     content = content_loss(vgg_var, vgg_content)
     style = style_loss(vgg_var, vgg_style, style_ws)
     return tf.add(tf.multiply(content, weights[0]), tf.multiply(style, weights[1]))
+
 
 def content_loss(vgg1, vgg2):
     content_layer_1 = vgg1.conv4_2
@@ -22,6 +28,7 @@ def content_loss(vgg1, vgg2):
     dist = frobenious_norm(tf.subtract(content_layer_1, content_layer_2))
     shape = content_layer_1.get_shape().as_list()
     return tf.div(dist, shape[1] * shape[2] * shape[3]) 
+
 
 def style_loss(vgg1, vgg2, ws):
     c1_2_i1 = vgg1.conv1_2
